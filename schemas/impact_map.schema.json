@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/release-pillar-mapper/impact_map.schema.json",
+  "title": "Impact Map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "release_id",
+    "repo_impacts",
+    "brief_impacts",
+    "pillar_impacts"
+  ],
+  "properties": {
+    "release_id": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "repo_impacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/impact" }
+    },
+    "brief_impacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/impact" }
+    },
+    "pillar_impacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/impact" }
+    }
+  },
+  "anyOf": [
+    {
+      "properties": {
+        "repo_impacts": { "minItems": 1 }
+      }
+    },
+    {
+      "properties": {
+        "brief_impacts": { "minItems": 1 }
+      }
+    },
+    {
+      "properties": {
+        "pillar_impacts": { "minItems": 1 }
+      }
+    }
+  ],
+  "$defs": {
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_id",
+        "direction",
+        "confidence",
+        "evidence_anchor",
+        "recommended_action"
+      ],
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "strengthens",
+            "weakens",
+            "invalidates",
+            "confirms",
+            "refutes",
+            "unchanged"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "evidence_anchor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recommended_action": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

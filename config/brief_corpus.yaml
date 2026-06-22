@@ -1,0 +1,25 @@
+{
+  "briefs": [
+    {
+      "id": "brief-agent-cost-curves",
+      "url": "https://example.com/briefs/agent-cost-curves",
+      "topic_tags": ["agent", "cost", "computer use", "tool use"],
+      "impact_direction": "confirms",
+      "recommended_action": "Add a dated note on lower-cost computer-use traces."
+    },
+    {
+      "id": "brief-eval-bottlenecks",
+      "url": "https://example.com/briefs/eval-bottlenecks",
+      "topic_tags": ["eval", "swe-bench", "coding", "benchmark"],
+      "impact_direction": "confirms",
+      "recommended_action": "Append one sentence distinguishing benchmark gains from production reliability."
+    },
+    {
+      "id": "brief-infra-margin",
+      "url": "https://example.com/briefs/infra-margin",
+      "topic_tags": ["infrastructure", "serving", "model", "long context"],
+      "impact_direction": "confirms",
+      "recommended_action": "Leave the current margin framing in place and review after the next pricing disclosure."
+    }
+  ]
+}

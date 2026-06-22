@@ -1,0 +1,36 @@
+{
+  "vendor_allowlist": [
+    "OpenAI",
+    "Anthropic",
+    "Google",
+    "Meta",
+    "xAI",
+    "DeepSeek",
+    "Mistral"
+  ],
+  "headline_keywords": [
+    "agent",
+    "coding",
+    "computer use",
+    "frontier",
+    "long context",
+    "multimodal",
+    "reasoning",
+    "swe-bench"
+  ],
+  "curated_eval_ids": [
+    "arc-agi",
+    "gpqa",
+    "swe-bench"
+  ],
+  "dataset_keywords": [
+    "agent traces",
+    "coding trajectories",
+    "tool use"
+  ],
+  "framework_keywords": [
+    "agent runtime",
+    "model serving",
+    "tool calling"
+  ]
+}
