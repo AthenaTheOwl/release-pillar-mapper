@@ -30,15 +30,21 @@ significance threshold, and the gates that land in spec 0002.
 
 ## How to run
 
-Placeholder. Spec 0002 will ship the CLI:
+Validate the bundled v0.1 artifact first:
 
 ```bash
-uv run release-mapper ingest --url https://openai.com/blog/...
-uv run release-mapper map --release-id 2026-07-15-gpt-X
-uv run release-mapper backscore --release-id 2026-04-01-claude-Y
+python -m release_pillar_mapper validate
 ```
 
-For now read `specs/0001-foundation/` and `docs/first-pr.md`.
+Then inspect the canonical example release:
+
+```bash
+python -m release_pillar_mapper validate-event examples/_events/2026-04-01-example-frontier-agent-model.json
+python -m release_pillar_mapper significance --id 2026-04-01-example-frontier-agent-model
+python -m release_pillar_mapper render --id 2026-04-01-example-frontier-agent-model --output releases/2026-04-01-example-frontier-agent-model.md
+```
+
+The v0.1 artifact is `reports/2026-04-01-example-frontier-agent-model.jsonl`.
 
 ## Layout
 

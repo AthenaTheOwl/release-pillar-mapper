@@ -1,0 +1,18 @@
+{
+  "claims": [
+    {
+      "source_anchor": "example-release#claim-1",
+      "text": "The model improves multi-step computer use tasks and coding workflow reliability."
+    },
+    {
+      "source_anchor": "example-release#claim-2",
+      "text": "The release note reports stronger SWE-bench style coding performance and longer context handling for agent traces."
+    }
+  ],
+  "headline": "Example frontier agent model improves coding and computer use reliability",
+  "id": "2026-04-01-example-frontier-agent-model",
+  "ingested_at": "2026-04-01T12:00:00Z",
+  "kind": "model",
+  "source_url": "https://example.com/releases/frontier-agent-model",
+  "vendor": "OpenAI"
+}

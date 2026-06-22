@@ -1,0 +1,28 @@
+{
+  "pillars": [
+    {
+      "id": "agent-economics",
+      "headline": "Agent workloads become investable when reliability rises faster than inference cost.",
+      "current_verdict": "hold",
+      "topic_tags": ["agent", "computer use", "tool use", "cost"],
+      "impact_direction": "strengthens",
+      "recommended_action": "Hold the pillar and add one monitoring item for successful multi-step computer-use tasks."
+    },
+    {
+      "id": "eval-infrastructure",
+      "headline": "Evaluation infrastructure gains value as model releases need repeatable external checks.",
+      "current_verdict": "add",
+      "topic_tags": ["eval", "benchmark", "coding", "swe-bench"],
+      "impact_direction": "strengthens",
+      "recommended_action": "Add one due-diligence question about release-specific benchmark reproducibility."
+    },
+    {
+      "id": "infra-consolidation",
+      "headline": "Model-serving complexity pushes teams toward consolidated infrastructure vendors.",
+      "current_verdict": "hedge",
+      "topic_tags": ["infrastructure", "serving", "long context", "model"],
+      "impact_direction": "strengthens",
+      "recommended_action": "Keep the hedge and recheck exposure after pricing and context-window adoption data land."
+    }
+  ]
+}

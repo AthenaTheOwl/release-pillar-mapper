@@ -1,0 +1,28 @@
+{
+  "repos": [
+    {
+      "slug": "agent-runtime-bench",
+      "current_thesis_one_liner": "Agent evaluation harnesses need cost-aware browser and coding traces.",
+      "coupled_pillars": ["agent-economics", "eval-infrastructure"],
+      "topic_tags": ["agent", "computer use", "coding", "eval"],
+      "impact_direction": "strengthens",
+      "recommended_action": "Add one scenario that measures plan repair cost under long-horizon tool use."
+    },
+    {
+      "slug": "brief-claim-ledger",
+      "current_thesis_one_liner": "Published AI claims need source anchors and later correction hooks.",
+      "coupled_pillars": ["eval-infrastructure"],
+      "topic_tags": ["brief", "claims", "source anchors", "eval"],
+      "impact_direction": "strengthens",
+      "recommended_action": "Add this release to the next claim-ledger fixture and verify source-anchor rendering."
+    },
+    {
+      "slug": "portfolio-signal-board",
+      "current_thesis_one_liner": "Build and investing signals should share explicit thesis-pillar IDs.",
+      "coupled_pillars": ["agent-economics", "infra-consolidation"],
+      "topic_tags": ["pillar", "investing", "agent", "infrastructure"],
+      "impact_direction": "strengthens",
+      "recommended_action": "Create a follow-up card for agent-infrastructure exposure and link it to the pillar ID."
+    }
+  ]
+}
