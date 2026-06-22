@@ -16,6 +16,14 @@ def test_cli_validate_event(capsys) -> None:
     assert "OK 2026-04-01-example-frontier-agent-model" in out
 
 
+def test_cli_validate_default_artifact(capsys) -> None:
+    assert main(["validate"]) == 0
+
+    out = capsys.readouterr().out
+    assert "release event(s)" in out
+    assert "report artifact(s)" in out
+
+
 def test_cli_significance_accepts(capsys) -> None:
     assert main(["significance", "--event", str(EVENT_PATH), "--config", str(ROOT / "config" / "significance.yaml")]) == 0
 

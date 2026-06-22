@@ -45,6 +45,9 @@ def _parser() -> argparse.ArgumentParser:
     validate.add_argument("paths", nargs="+")
     validate.set_defaults(func=_validate_event)
 
+    validate_default = subcommands.add_parser("validate", help="validate bundled v0.1 artifact")
+    validate_default.set_defaults(func=_validate_default)
+
     significance = subcommands.add_parser("significance", help="evaluate significance rules")
     _event_args(significance)
     significance.add_argument("--config", default="config/significance.yaml")
@@ -92,6 +95,22 @@ def _validate_event(args: argparse.Namespace) -> int:
     for raw_path in args.paths:
         event = load_release_event(Path(raw_path))
         print(f"OK {event.id}")
+    return 0
+
+
+def _validate_default(_args: argparse.Namespace) -> int:
+    events = sorted(Path("examples/_events").glob("*.json"))
+    reports = sorted(Path("reports").glob("*.jsonl"))
+    if not events:
+        raise SystemExit("missing examples/_events/*.json")
+    if not reports:
+        raise SystemExit("missing reports/*.jsonl")
+    for event_path in events:
+        load_release_event(event_path)
+    for report_path in reports:
+        if not report_path.read_text(encoding="utf-8").strip():
+            raise SystemExit(f"empty report: {report_path}")
+    print(f"OK {len(events)} release event(s), {len(reports)} report artifact(s)")
     return 0
 
 
