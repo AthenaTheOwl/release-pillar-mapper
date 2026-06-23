@@ -3,3 +3,6 @@
 # streamlit. The CLI/package under src/release_pillar_mapper/ has its own deps
 # in pyproject.toml.
 streamlit>=1.40
+# install this repo as a package so streamlit_app.py can import the real engine
+# (release_pillar_mapper.model / .scoring) on Streamlit Community Cloud.
+.

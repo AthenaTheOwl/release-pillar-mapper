@@ -12,12 +12,34 @@ AthenaTheOwl/release-pillar-mapper, branch main, main file streamlit_app.py.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import streamlit as st
 
 REPO = Path(__file__).resolve().parent
 REPORTS = REPO / "reports"
+CONFIG = REPO / "config"
+
+# the real engine lives in src/release_pillar_mapper. make it importable whether
+# or not the package was pip-installed (requirements.txt carries `.` for cloud).
+_SRC = REPO / "src"
+if _SRC.is_dir() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+try:
+    from release_pillar_mapper.model import build_impact_map, load_registries
+    from release_pillar_mapper.schema import Claim, ReleaseEvent, ValidationError
+    from release_pillar_mapper.scoring import (
+        evaluate_significance,
+        load_significance_config,
+    )
+
+    _ENGINE_OK = True
+    _ENGINE_ERR = ""
+except Exception as exc:  # pragma: no cover - import guard for cloud
+    _ENGINE_OK = False
+    _ENGINE_ERR = f"{type(exc).__name__}: {exc}"
 
 _DIRECTION_RANK = {
     "invalidates": 5,
@@ -127,3 +149,153 @@ st.caption(
     "the same summary prints from the CLI: `python -m release_pillar_mapper show`. "
     "repo: github.com/AthenaTheOwl/release-pillar-mapper"
 )
+
+# ---------------------------------------------------------------------------
+# interactive: map YOUR OWN release through the real engine
+# ---------------------------------------------------------------------------
+_DIRECTION_RANK_LIVE = _DIRECTION_RANK
+_CONFIDENCE_RANK_LIVE = _CONFIDENCE_RANK
+
+st.divider()
+st.subheader("map your own release")
+st.caption(
+    "the table above is the committed example. below you edit a release event and "
+    "drive the real engine live: `scoring.evaluate_significance` gates it against "
+    "`config/significance.yaml`, then `model.build_impact_map` matches your event "
+    "text against the repo / brief / pillar registries. no lookup — same functions "
+    "the CLI runs."
+)
+
+if not _ENGINE_OK:
+    st.error(
+        "could not import the engine from `src/release_pillar_mapper`. add `.` to "
+        f"requirements.txt so the package installs on cloud. ({_ENGINE_ERR})"
+    )
+    st.stop()
+
+
+def _registry_targets() -> dict[str, list[str]]:
+    regs = load_registries(REPO)
+    return {
+        "repos": [t.get("slug", "") for t in regs["repos"]],
+        "briefs": [t.get("id", "") for t in regs["briefs"]],
+        "pillars": [t.get("id", "") for t in regs["pillars"]],
+    }
+
+
+_VENDORS = ["OpenAI", "Anthropic", "Google", "Meta", "xAI", "DeepSeek", "Mistral", "Other"]
+
+col_a, col_b = st.columns(2)
+with col_a:
+    vendor_pick = st.selectbox("vendor", _VENDORS, index=1)
+    vendor = (
+        st.text_input("vendor name", value="", placeholder="type the vendor")
+        if vendor_pick == "Other"
+        else vendor_pick
+    )
+    kind = st.selectbox("kind", ["model", "eval", "dataset", "framework"], index=0)
+with col_b:
+    rid = st.text_input("release id", value="2026-06-22-your-frontier-release")
+    headline = st.text_input(
+        "headline",
+        value="New frontier agent model improves coding and reasoning",
+    )
+
+claim_text = st.text_area(
+    "claim text (what the release actually says — this is what the engine matches on)",
+    value=(
+        "The model improves multi-step computer use and SWE-bench style coding "
+        "reliability, with longer context handling for agent traces."
+    ),
+    height=90,
+)
+source_anchor = st.text_input("evidence anchor", value="your-release#claim-1")
+force = st.checkbox(
+    "force significance (operator override)",
+    value=False,
+    help="bypass the vendor/keyword gate — drives evaluate_significance(force=True)",
+)
+
+run = st.button("run the engine", type="primary")
+
+if run:
+    try:
+        event = ReleaseEvent.from_dict(
+            {
+                "id": rid.strip(),
+                "kind": kind,
+                "source_url": "https://example.com/your-release",
+                "vendor": vendor.strip(),
+                "headline": headline.strip(),
+                "claims": [
+                    {"text": claim_text.strip(), "source_anchor": source_anchor.strip()}
+                ],
+                "ingested_at": "2026-06-22T00:00:00Z",
+            }
+        )
+    except ValidationError as exc:
+        st.error(f"event rejected by the validator: {exc}")
+        st.stop()
+
+    # 1) real significance gate
+    sig_cfg = load_significance_config(CONFIG / "significance.yaml")
+    sig = evaluate_significance(event, sig_cfg, force=force)
+    if sig.accepted:
+        st.success(f"significance: yes — {sig.reason}")
+    else:
+        st.warning(
+            f"significance: no — {sig.reason}. "
+            "the gate would stop here; tick 'force' to map it anyway."
+        )
+
+    # 2) real mapper (always shown so you can see the impact axes either way)
+    impact_map = build_impact_map(event, load_registries(REPO))
+    live_rows: list[dict] = []
+    for axis, impacts in (
+        ("repo", impact_map.repo_impacts),
+        ("brief", impact_map.brief_impacts),
+        ("pillar", impact_map.pillar_impacts),
+    ):
+        for imp in impacts:
+            live_rows.append(
+                {
+                    "axis": axis,
+                    "target": imp.target_id,
+                    "direction": imp.direction,
+                    "confidence": imp.confidence,
+                    "evidence": imp.evidence_anchor,
+                    "recommended action": imp.recommended_action,
+                }
+            )
+    live_rows.sort(
+        key=lambda r: (
+            _DIRECTION_RANK_LIVE.get(r["direction"], 1),
+            _CONFIDENCE_RANK_LIVE.get(r["confidence"], 0),
+        ),
+        reverse=True,
+    )
+
+    live_actionable = [r for r in live_rows if r["direction"] != "unchanged"]
+    m1, m2, m3 = st.columns(3)
+    m1.metric("targets mapped", len(live_rows))
+    m2.metric("actionable", len(live_actionable))
+    m3.metric("left unchanged", len(live_rows) - len(live_actionable))
+
+    st.dataframe(live_rows, use_container_width=True, hide_index=True)
+
+    if live_actionable:
+        top = live_actionable[0]
+        st.info(
+            f"**top finding:** {top['target']} ({top['axis']}) {top['direction']} "
+            f"[{top['confidence']}] -> {top['recommended action']}"
+        )
+    else:
+        st.info(
+            "no actionable impacts: your event text matched no registry topic tags. "
+            "try mentioning agent / coding / eval / infrastructure."
+        )
+
+    st.caption(
+        "engine: `release_pillar_mapper.scoring.evaluate_significance` + "
+        "`release_pillar_mapper.model.build_impact_map`, run live on the event above."
+    )
