@@ -45,6 +45,37 @@ python -m release_pillar_mapper render --id 2026-04-01-example-frontier-agent-mo
 
 The v0.1 artifact is `reports/2026-04-01-example-frontier-agent-model.jsonl`.
 
+For a ranked, readable summary of that committed artifact (no arguments,
+read-only, offline):
+
+```bash
+python -m release_pillar_mapper show
+```
+
+It prints every mapped target ranked with the actionable impacts first
+(`invalidates`/`refutes` above `strengthens`/`confirms` above `unchanged`,
+ties broken by confidence), then a one-line top finding.
+
+## live demo
+
+Run the same impact map as an interactive page:
+
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+The app reads the committed `reports/*.jsonl` directly (no network, no
+secrets): pick which axes to show (repo / brief / pillar), see the ranked
+table, the actionable vs unchanged counts, and the top finding.
+
+Deploy on Streamlit Community Cloud: New app -> repo
+`AthenaTheOwl/release-pillar-mapper`, branch `main`, main file
+`streamlit_app.py`.
+
+<!-- live-url: https://<your-app>.streamlit.app -->
+
+
 ## Layout
 
 ```

@@ -1,0 +1,5 @@
+# Streamlit Community Cloud reads this file. streamlit_app.py reads the committed
+# reports/*.jsonl directly with the stdlib (json, pathlib), so it only needs
+# streamlit. The CLI/package under src/release_pillar_mapper/ has its own deps
+# in pyproject.toml.
+streamlit>=1.40

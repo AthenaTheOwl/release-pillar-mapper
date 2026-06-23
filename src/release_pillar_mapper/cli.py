@@ -8,8 +8,29 @@ from typing import Sequence
 from release_pillar_mapper.io import find_event_path, write_json
 from release_pillar_mapper.model import build_impact_map, load_registries
 from release_pillar_mapper.render import render_report
-from release_pillar_mapper.schema import Claim, ReleaseEvent, load_release_event
+from release_pillar_mapper.schema import (
+    Claim,
+    Impact,
+    ImpactMap,
+    ReleaseEvent,
+    load_release_event,
+)
 from release_pillar_mapper.scoring import evaluate_significance, load_significance_config
+
+
+# project root: src/release_pillar_mapper/cli.py -> parents[2]
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# rank weights: active impacts above "unchanged", high confidence above low
+_DIRECTION_RANK = {
+    "invalidates": 5,
+    "refutes": 5,
+    "weakens": 4,
+    "strengthens": 3,
+    "confirms": 3,
+    "unchanged": 0,
+}
+_CONFIDENCE_RANK = {"high": 3, "medium": 2, "low": 1}
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -63,6 +84,12 @@ def _parser() -> argparse.ArgumentParser:
     _event_args(render)
     render.add_argument("--output")
     render.set_defaults(func=_render)
+
+    show = subcommands.add_parser(
+        "show",
+        help="print a ranked, readable summary of the committed impact map (no args, read-only)",
+    )
+    show.set_defaults(func=_show)
 
     return parser
 
@@ -158,3 +185,85 @@ def _parse_claim(raw: str) -> Claim:
         raise ValueError("--claim must use 'claim text||source_anchor'")
     text, source_anchor = raw.split("||", 1)
     return Claim(text=text.strip(), source_anchor=source_anchor.strip())
+
+
+def _impact_rank(impact: Impact) -> tuple[int, int]:
+    return (
+        _DIRECTION_RANK.get(impact.direction, 1),
+        _CONFIDENCE_RANK.get(impact.confidence, 0),
+    )
+
+
+def _ranked_rows(impact_map: ImpactMap) -> list[tuple[str, Impact]]:
+    rows: list[tuple[str, Impact]] = []
+    for axis, impacts in (
+        ("repo", impact_map.repo_impacts),
+        ("brief", impact_map.brief_impacts),
+        ("pillar", impact_map.pillar_impacts),
+    ):
+        for impact in impacts:
+            rows.append((axis, impact))
+    rows.sort(key=lambda row: _impact_rank(row[1]), reverse=True)
+    return rows
+
+
+def load_committed_impact_map(root: Path) -> tuple[ImpactMap, Path]:
+    reports = sorted(root.glob("reports/*.jsonl"))
+    if not reports:
+        raise FileNotFoundError(f"no committed report found under {root / 'reports'}")
+    report_path = reports[0]
+    records = [
+        json.loads(line)
+        for line in report_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    impact_record = next(
+        (rec for rec in records if rec.get("artifact_type") == "impact_map"),
+        records[0] if records else None,
+    )
+    if impact_record is None:
+        raise ValueError(f"{report_path} contains no impact_map record")
+    return ImpactMap.from_dict(impact_record), report_path
+
+
+def render_show(impact_map: ImpactMap, report_path: Path) -> str:
+    rows = _ranked_rows(impact_map)
+    active = [row for row in rows if row[1].direction != "unchanged"]
+    quiet = [row for row in rows if row[1].direction == "unchanged"]
+
+    lines: list[str] = []
+    lines.append(f"release: {impact_map.release_id}")
+    lines.append(f"source : {report_path.name}")
+    lines.append(
+        f"targets: {len(rows)} mapped  |  {len(active)} actionable  |  {len(quiet)} left unchanged"
+    )
+    lines.append("")
+
+    header = f"{'#':>2}  {'axis':<6}  {'target':<24}  {'direction':<12}  {'conf':<6}  action"
+    lines.append(header)
+    lines.append("-" * len(header))
+    for index, (axis, impact) in enumerate(rows, start=1):
+        action = impact.recommended_action
+        if len(action) > 64:
+            action = action[:61] + "..."
+        lines.append(
+            f"{index:>2}  {axis:<6}  {impact.target_id:<24}  "
+            f"{impact.direction:<12}  {impact.confidence:<6}  {action}"
+        )
+    lines.append("")
+
+    if active:
+        axis, top = active[0]
+        lines.append(
+            f"top finding: {top.target_id} ({axis}) {top.direction} "
+            f"[{top.confidence}] -> {top.recommended_action}"
+        )
+    else:
+        lines.append("top finding: no actionable impacts; every target was left unchanged.")
+    return "\n".join(lines)
+
+
+def _show(_args: argparse.Namespace) -> int:
+    impact_map, report_path = load_committed_impact_map(_PROJECT_ROOT)
+    print(render_show(impact_map, report_path))
+    return 0
