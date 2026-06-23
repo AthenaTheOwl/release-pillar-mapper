@@ -24,9 +24,8 @@ system otherwise.
 
 ## Status
 
-v0 scaffold. No mapping engine, no ingestion, no back-scoring. Spec 0001
-names the event schema, the three downstream impact schemas, the
-significance threshold, and the gates that land in spec 0002.
+
+v0.1 shipped — runnable, minimal. The first real deliverable is in place; the next passes deepen it (more scenarios, real-data backfill). The entry command `python -m release_pillar_mapper validate` runs. See `specs/0002-design/` for the v0.1 scope and `STATUS.md` (where present) for the current state and next-feature queue.
 
 ## How to run
 
