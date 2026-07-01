@@ -39,7 +39,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not hasattr(args, "func"):
         parser.print_help()
         return 2
-    return args.func(args)
+    # Turn expected input failures (missing/unreadable/malformed files) into a
+    # one-line error and a non-zero exit, so ordinary bad input does not surface
+    # a Python traceback. ValidationError subclasses ValueError, so it is caught.
+    try:
+        return args.func(args)
+    except (OSError, ValueError) as exc:
+        raise SystemExit(f"error: {exc}") from exc
 
 
 def _parser() -> argparse.ArgumentParser:
