@@ -6,3 +6,7 @@ streamlit>=1.40
 # install this repo as a package so streamlit_app.py can import the real engine
 # (release_pillar_mapper.model / .scoring) on Streamlit Community Cloud.
 .
+
+# required by scripts/validate_data_conformance.py (DEC: data-conformance gate)
+jsonschema
+pyyaml
