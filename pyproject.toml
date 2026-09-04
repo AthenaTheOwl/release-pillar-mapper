@@ -10,7 +10,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Vignesh" }]
-dependencies = []
+dependencies = [
+    "pyyaml>=6.0",
+    "jsonschema>=4.0",
+]
 
 [project.scripts]
 release-mapper = "release_pillar_mapper.cli:main"
