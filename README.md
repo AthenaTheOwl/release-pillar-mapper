@@ -116,10 +116,10 @@ releases/                one rendered Markdown file per significant release
 scripts/  specs/  docs/  tests/
 ```
 
-## License
-
-MIT. See `LICENSE`.
-
 ## Method update
 
 [October method update: A release claim becomes a work order through a measured gap](docs/release-evidence-tiers.md).
+
+## License
+
+MIT. See `LICENSE`.
