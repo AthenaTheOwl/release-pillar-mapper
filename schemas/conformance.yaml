@@ -8,5 +8,5 @@ mappings:
     files: ["releases/*.md"]
     records: frontmatter
   - schema: release_event.schema.json
-    files: ["examples/_events/*.json"]
+    files: ["examples/_events/*.json", "releases/_events/*.json"]
     records: self
